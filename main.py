@@ -23,19 +23,10 @@ def scrape():
 
 
 def enrich():
-    df = pd.read_csv(RAW_CSV)
-
-    for idx, row in df.iterrows():
-        company_name = utils.get_company_name_from_content(row["content"])
-        ticker = utils.map_company_to_ticker(company_name)
-        rate = utils.get_rate(row["title"], row["content"], company_name)
-
-        df.at[idx, "company_name"] = company_name
-        df.at[idx, "ticker"] = ticker
-        df.at[idx, "rate"] = rate
-
-    df = utils.get_stock_price_for_companies(df)
-
+    import os
+    source = ENRICHED_CSV if os.path.exists(ENRICHED_CSV) else RAW_CSV
+    df = pd.read_csv(source)
+    df = utils.enrich_dataframe(df)
     df.to_csv(ENRICHED_CSV, index=False)
     print(f"Saved {len(df)} rows to {ENRICHED_CSV}")
 

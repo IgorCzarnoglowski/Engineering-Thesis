@@ -1,5 +1,6 @@
 from src import StockMarketDataScraper as sm
 import ollama
+import pandas as pd
 
 companies = {
     "mbank": ("109", "MBK.WA"),
@@ -33,6 +34,23 @@ def _ollama_chat(prompt: str) -> str:
         messages=[{"role": "user", "content": prompt}],
     )
     return response["message"]["content"].strip()
+
+
+def enrich_dataframe(df):
+    for idx, row in df.iterrows():
+        ticker_val = row.get("ticker") if "ticker" in df.columns else None
+        if pd.notna(ticker_val) and str(ticker_val).strip().lower() not in ("", "nan"):
+            continue
+
+        company_name = get_company_name_from_content(row["content"])
+        ticker = map_company_to_ticker(company_name)
+        rate = get_rate(row["title"], row["content"], company_name)
+
+        df.at[idx, "company_name"] = company_name
+        df.at[idx, "ticker"] = ticker
+        df.at[idx, "rate"] = rate
+
+    return get_stock_price_for_companies(df)
 
 
 def get_stock_price_for_companies(df):
