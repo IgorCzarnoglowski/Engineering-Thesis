@@ -6,7 +6,7 @@
 ## 1. Zdefiniowanie celów
 - **Cel:** Ocena jakości LLM przy klasyfikowania przydatności wiadomości dotyczących spółek działających na giełdzie WIG (konkretnie spółki w indeksie WIG20)
 - **Typ problemu:** klasyfikacja / NLP
-- **Limity:** Jakość danych
+- **Limity:** Jakość danych, moc obliczeniowa, czas
 
 ## 2. Zbieranie danych
 - **Źródła:** PapBiznes, Bankier, Wykop, 
@@ -28,6 +28,7 @@
 ## 4. Przewidywane technologie
 - [ ] Python 3.12
 - [ ] Ollama
+- [ ] Streamlit (do budowy aplikacji)
 
 ## 5. Przewidywane LLM
 - **HuggingFace**
