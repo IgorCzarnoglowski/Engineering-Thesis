@@ -2,6 +2,8 @@
 ## Igor Czarnogłowski, s223275
 
 ---
+## Tytuł Pracy
+Ocena długości przydatności wiadomości dotyczącej spółek z indeksu WIG20 przy wykorzystaniu dużych modeli językowych
 
 ## 1. Zdefiniowanie celów
 - **Cel:** Ocena jakości LLM przy klasyfikowania przydatności wiadomości dotyczących spółek działających na giełdzie WIG (konkretnie spółki w indeksie WIG20)
@@ -36,18 +38,19 @@
 - [ ] finbert https://huggingface.co/ProsusAI/finbert
 - [ ] financial-lora https://huggingface.co/cg1026/financial-news-sentiment-lora
 - **Klasyczne LLM**
-- [ ] Qwen2.5:7b
-- [ ] Mistral:7b  
-- [ ] DeepSeek-R1:7b 
-- [ ] gpt-oss-20b
+- [ ] Qwen3.6:27b https://huggingface.co/Qwen/Qwen3.6-27B
+- [ ] Mistral-Medium3.5:128b  https://huggingface.co/mistralai/Mistral-Medium-3.5-128B
+- [ ] DeepSeekV4:158b https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash
+- [ ] gpt-oss-20b 
+- [ ] Kimi k2.5:1T https://huggingface.co/moonshotai/Kimi-K2.5
 
 ## 6. Proponowany pipeline
 
 | Zadanie | Model |
 |---|---|
-| Klasyfikacja spółki | `finance-llama-8b` lub `qwen2.5:7b` |
-| Ocena wpływu wiadomości (1-10) | `deepseek-r1:7b` (reasoning) lub `qwen2.5:7b` |
-| Priorytet szybkości | `mistral:7b` |
+| Klasyfikacja spółki | `finance-llama-8b` lub `Qwen3.6:27b` |
+| Ocena wpływu wiadomości (1-10) | `DeepSeekV4:158b` (reasoning) lub `Qwen3.6:27b` |
+| Priorytet szybkości | `Mistral-Medium3.5:128b` |
 
 
 ## 7. Proponowane metryki ewaluacji
