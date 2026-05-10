@@ -14,9 +14,17 @@ def scrape():
     valid_dfs = [df for df in [df_pap, df_bankier, df_wykop] if not df.empty]
 
     if valid_dfs:
-        df_combined = pd.concat(valid_dfs, ignore_index=True)
+        df_new = pd.concat(valid_dfs, ignore_index=True)
     else:
-        df_combined = pd.DataFrame()
+        df_new = pd.DataFrame()
+
+    import os
+    if os.path.exists(RAW_CSV) and not df_new.empty:
+        df_existing = pd.read_csv(RAW_CSV)
+        df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+        df_combined.drop_duplicates(inplace=True)
+    else:
+        df_combined = df_new
 
     df_combined.to_csv(RAW_CSV, index=False)
     print(f"Saved {len(df_combined)} rows to {RAW_CSV}")
