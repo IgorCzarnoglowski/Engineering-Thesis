@@ -1,11 +1,9 @@
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+import random
 from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime, timedelta
-import random
 import time
+from playwright.sync_api import sync_playwright
 
 user_agents = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -39,26 +37,39 @@ companies = {
 }
 
 
-def parse(url, page_number=None):
-    time.sleep(2)
-    session = requests.Session()
-    retry = Retry(total=5, backoff_factor=2, status_forcelist=[503, 502, 504])
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount('https://', adapter)
-    if page_number is None:
-        page = session.get(f'{url}', headers={'User-Agent': random.choice(user_agents)})
-    else:
-        page = session.get(f'{url}{page_number}', headers={'User-Agent': random.choice(user_agents)})
-    print(page)
-    soup = BeautifulSoup(page.text, 'html.parser')
+def parse(url, browser, page_number=None):
+    time.sleep(random.uniform(3, 8))
+    target_url = url if page_number is None else f'{url}{page_number}'
+    context = browser.new_context(user_agent=random.choice(user_agents))
+    page = context.new_page()
+    response = page.goto(target_url)
+    page.wait_for_load_state()
+
+    if response.status in (403, 429):
+        print(f"Blocked (status {response.status}), backing off: {target_url}")
+        page.close()
+        context.close()
+        time.sleep(random.uniform(60, 120))
+        return parse(url, browser, page_number)
+
+    soup = BeautifulSoup(page.content(), 'html.parser')
+    page.close()
+    context.close()
     return soup
 
 
-def gather_content(anchor, date, ticker='Nan', name='Nan'):
+def gather_content(anchor, date, browser, ticker='Nan', name='Nan'):
     url = f'https://biznes.pap.pl{anchor["href"]}'
     print(url)
-    page_content = parse(url)
+    page_content = parse(url, browser)
     main_content_tag = page_content.find('article', id='article')
+    if main_content_tag is None:
+        print(f"Possible block (no article content): {url}")
+        time.sleep(random.uniform(60, 120))
+        page_content = parse(url, browser)
+        main_content_tag = page_content.find('article', id='article')
+        if main_content_tag is None:
+            raise RuntimeError(f"Still blocked or page structure changed: {url}")
 
     title = main_content_tag.find('span', class_='field--name-title').text
 
@@ -71,7 +82,7 @@ def gather_content(anchor, date, ticker='Nan', name='Nan'):
     return {'date': date, 'link': url, 'title': title, 'content': content, 'company_name': name, 'ticker': ticker}
 
 
-def company_profiles_scraping(cutoff):
+def company_profiles_scraping(cutoff, browser):
     all_data = []
 
     for company, data in companies.items():
@@ -80,9 +91,14 @@ def company_profiles_scraping(cutoff):
         baseurl = f"https://biznes.pap.pl/wiadomosci/firma/{code}?page="
         break_flag = False
 
-        for page in range(99):
-            page_content = parse(baseurl, page)
+        for page_number in range(99):
+            page_content = parse(baseurl,browser, page_number)
             articles_list_tag = page_content.find('ul', class_='newsList')
+            if articles_list_tag is None:
+                print(f"Possible block (200 but no newsList) at {baseurl}{page_number}, backing off")
+                time.sleep(random.uniform(60, 120))
+                break_flag = True
+                break
             articles_tag = articles_list_tag.find_all('li', class_='news')
 
             for article in articles_tag:
@@ -95,7 +111,7 @@ def company_profiles_scraping(cutoff):
                         break_flag = True
                         break
                     else:
-                        all_data.append(gather_content(anchor, post_date_formatted, ticker, company))
+                        all_data.append(gather_content(anchor, post_date_formatted, browser, ticker, company))
                 else:
                     print(article)
                     print('No anchor for this news (Pap)')
@@ -108,7 +124,7 @@ def company_profiles_scraping(cutoff):
     return df_news
 
 
-def category_scraping(cutoff):
+def category_scraping(cutoff, browser):
     all_dfs = []
     categories = {
         "market": "https://biznes.pap.pl/kategoria/rynki?page=",
@@ -117,9 +133,14 @@ def category_scraping(cutoff):
     for category, url in categories.items():
         break_flag = False
         all_data = []
-        for page in range(99):
-            page_content = parse(url, page)
+        for page_number in range(99):
+            page_content = parse(url, browser, page_number)
             articles_list_tag = page_content.find('ul', class_='newsList')
+            if articles_list_tag is None:
+                print(f"Possible block (200 but no newsList) at {url}{page_number}, backing off")
+                time.sleep(random.uniform(60, 120))
+                break_flag = True
+                break
             articles_tag = articles_list_tag.find_all('li', class_='news')
 
             for article in articles_tag:
@@ -132,7 +153,7 @@ def category_scraping(cutoff):
                         break_flag = True
                         break
                     else:
-                        all_data.append(gather_content(anchor, post_date_formatted))
+                        all_data.append(gather_content(anchor, post_date_formatted, browser))
                 else:
                     print(article)
                     print('No anchor for this news (Pap)')
@@ -149,11 +170,15 @@ def category_scraping(cutoff):
 
 
 def main():
-    target_day = datetime.today()
-    cutoff = target_day - timedelta(days=5)
+    with sync_playwright() as playwright:
+        chromium = playwright.chromium  # or "firefox" or "webkit".
+        browser = chromium.launch()
+        target_day = datetime.today()
+        cutoff = target_day - timedelta(days=5)
 
-    df_profiles = company_profiles_scraping(cutoff)
-    df_categories = category_scraping(cutoff)
+        df_profiles = company_profiles_scraping(cutoff, browser)
+        df_categories = category_scraping(cutoff, browser)
+        browser.close()
 
     valid_dfs = [df for df in [df_profiles, df_categories] if not df.empty]
 
