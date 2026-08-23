@@ -1,3 +1,3 @@
-OLLAMA_MODEL = "gpt-oss-120b"
+LMS_MODEL = "qwen/qwen3-4b-2507"
 
 SCRAPING_LOOKBACK_DAYS = 5

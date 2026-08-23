@@ -1,5 +1,14 @@
 from config.companies import companies
 from src.llm.client import chat
+from src.llm.schemas import CompanyMatchResult
+
+
+SYSTEM_PROMPT = """You are a company identification assistant. Given a list of WIG20 companies and a news article, identify which company the article is about.
+
+Rules:
+- Pick the single most central company
+- If none match, return "Nan"
+- Return only the company name from the provided list"""
 
 
 def get_company_name_from_content(news: str) -> str:
@@ -7,20 +16,15 @@ def get_company_name_from_content(news: str) -> str:
         f"{i}. {name}" for i, name in enumerate(companies.keys(), 1)
     )
 
-    prompt = f"""Given the following list of companies from the WIG20 index:
+    user_prompt = f"""Companies:
 {company_list}
-
-You will receive a passage of text. Identify the single company that the passage is about—either mentioned directly or implied. If multiple companies are referenced, choose the one most central to the main topic. If no company fits, answer with the word Nan. Respond with only one word: the company name or Nan. Do not add any punctuation, explanation, extra characters or extra styling.
-
-Output requirements:
-- Respond with only one word – the company name or "Nan".
-- Do not include any punctuation, explanation, or extra characters.
 
 Text:
 {news}"""
 
-    text = chat(prompt)
-    return text.split()[0] if text else "Nan"
+    result = chat(SYSTEM_PROMPT, user_prompt, response_schema=CompanyMatchResult)
+    parsed = CompanyMatchResult.model_validate_json(result)
+    return parsed.company_name
 
 
 def map_company_to_ticker(name: str) -> str:
