@@ -55,9 +55,3 @@ def get_stock_data(ticker: str, newsTime: str):
             close_prices[label] = None
 
     return close_prices
-
-
-
-
-
-

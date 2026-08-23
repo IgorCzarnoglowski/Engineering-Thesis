@@ -1,15 +1,17 @@
-from src import BankierScraper as Bankier, PapBiznesScrapper as Pap, WykopScraper as Wykop
-from src import utils
+from src.scrapers import bankier, pap_biznes, wykop
+from src import pipeline
 import pandas as pd
+import os
 
-RAW_CSV = 'data/news_output.csv'
-ENRICHED_CSV = 'data/news_enriched.csv'
+RAW_CSV = 'data/raw/news_output.csv'
+ENRICHED_CSV = 'data/enriched/news_enriched.csv'
 
 
 def scrape():
-    df_pap = Pap.main()
-    df_bankier = Bankier.main()
-    df_wykop = Wykop.main()
+    df_pap = pap_biznes.main()
+    df_bankier = bankier.main()
+
+    df_wykop = wykop.main()
 
     valid_dfs = [df for df in [df_pap, df_bankier, df_wykop] if not df.empty]
 
@@ -18,7 +20,6 @@ def scrape():
     else:
         df_new = pd.DataFrame()
 
-    import os
     if os.path.exists(RAW_CSV) and not df_new.empty:
         df_existing = pd.read_csv(RAW_CSV)
         df_combined = pd.concat([df_existing, df_new], ignore_index=True)
@@ -31,10 +32,9 @@ def scrape():
 
 
 def enrich():
-    import os
     source = ENRICHED_CSV if os.path.exists(ENRICHED_CSV) else RAW_CSV
     df = pd.read_csv(source)
-    df = utils.enrich_dataframe(df)
+    df = pipeline.enrich_dataframe(df)
     df.to_csv(ENRICHED_CSV, index=False)
     print(f"Saved {len(df)} rows to {ENRICHED_CSV}")
 

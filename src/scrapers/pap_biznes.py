@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import time
 from playwright.sync_api import sync_playwright
 
+from config.companies import companies
+
 user_agents = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0',
@@ -12,29 +14,6 @@ user_agents = [
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:90.0) Gecko/20100101 Firefox/90.0',
     'Mozilla/5.0 (Linux; Android 11; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36'
 ]
-
-companies = {
-    "mbank": ("109", "MBK.WA"),
-    "budimex": ("112", "BDX.WA"),
-    "sanpl": ("117", "SPL.WA"),
-    "ccc": ("456", "CCC.WA"),
-    "kety": ("274", "KTY.WA"),
-    "kghm": ("350", "KGH.WA"),
-    "lpp": ("380", "LPP.WA"),
-    "cdprojekt": ("476", "CDR.WA"),
-    "pekao": ("76", "PEO.WA"),
-    "pknorlen": ("511", "PKN.WA"),
-    "pkobp": ("512", "PKO.WA"),
-    "orangepl": ("636", "OPL.WA"),
-    "pge": ("503", "PGE.WA"),
-    "pzu": ("558", "PZU.WA"),
-    "kruk": ("558", "KRU.WA"),
-    "alior": ("1180", "ALR.WA"),
-    "dinopl": ("1431", "DNP.WA"),
-    "pepco": ("1593", "PCO.WA"),
-    "zabka": ("1737", "ZAB.WA"),
-    "allegro": ("1559", "ALE.WA")
-}
 
 
 def parse(url, browser, page_number=None):
@@ -171,7 +150,7 @@ def category_scraping(cutoff, browser):
 
 def main():
     with sync_playwright() as playwright:
-        chromium = playwright.chromium  # or "firefox" or "webkit".
+        chromium = playwright.chromium
         browser = chromium.launch()
         target_day = datetime.today()
         cutoff = target_day - timedelta(days=5)
