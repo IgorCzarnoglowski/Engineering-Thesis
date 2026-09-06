@@ -41,11 +41,10 @@ def gather_content(anchor):
     article_text_content_tag = main_content_tag.find('section', class_='o-article-content')
     text_paragraphs = article_text_content_tag.find_all('p')
 
-    content = ''
-    for paragraph in text_paragraphs:
-        content += paragraph.text + ' '
+    content = ' '.join(paragraph.text.replace('\n', ' ').replace('\r', ' ') for paragraph in text_paragraphs)
+    title = title.replace('\n', ' ').replace('\r', ' ').strip()
 
-    return {'date': date, 'link': url, 'title': title, 'content': content}
+    return {'date': date, 'link': url, 'title': title, 'content': content.strip()}
 
 
 def scraping(cutoff):

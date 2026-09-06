@@ -54,11 +54,10 @@ def gather_content(anchor, date, browser, ticker='Nan', name='Nan'):
 
     text_paragraphs = main_content_tag.find_all('p', class_='selectionShareable')
 
-    content = ''
-    for paragraph in text_paragraphs:
-        content += paragraph.text + ' '
+    content = ' '.join(paragraph.text.replace('\n', ' ').replace('\r', ' ') for paragraph in text_paragraphs)
+    title = title.replace('\n', ' ').replace('\r', ' ').strip()
 
-    return {'date': date, 'link': url, 'title': title, 'content': content, 'company_name': name, 'ticker': ticker}
+    return {'date': date, 'link': url, 'title': title, 'content': content.strip(), 'company_name': name, 'ticker': ticker}
 
 
 def company_profiles_scraping(cutoff, browser):

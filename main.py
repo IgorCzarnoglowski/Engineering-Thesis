@@ -3,7 +3,7 @@ from src import pipeline
 import pandas as pd
 import os
 
-RAW_CSV = 'data/raw/news_output.csv'
+RAW_CSV = 'data/raw/news_output_v2.csv'
 ENRICHED_CSV = 'data/enriched/news_enriched.csv'
 
 
@@ -27,7 +27,9 @@ def scrape():
     else:
         df_combined = df_new
 
-    df_combined.to_csv(RAW_CSV, index=False)
+    for col in df_combined.select_dtypes(include='object').columns:
+        df_combined[col] = df_combined[col].str.replace(r'[\r\n]+', ' ', regex=True)
+    df_combined.to_csv(RAW_CSV, index=False, encoding='utf-8-sig')
     print(f"Saved {len(df_combined)} rows to {RAW_CSV}")
 
 
@@ -35,7 +37,9 @@ def enrich():
     source = ENRICHED_CSV if os.path.exists(ENRICHED_CSV) else RAW_CSV
     df = pd.read_csv(source)
     df = pipeline.enrich_dataframe(df)
-    df.to_csv(ENRICHED_CSV, index=False)
+    for col in df.select_dtypes(include='object').columns:
+        df[col] = df[col].str.replace(r'[\r\n]+', ' ', regex=True)
+    df.to_csv(ENRICHED_CSV, index=False, encoding='utf-8-sig')
     print(f"Saved {len(df)} rows to {ENRICHED_CSV}")
 
 
