@@ -6,4 +6,8 @@ class CompanyMatchResult(BaseModel):
 
 
 class ImpactRatingResult(BaseModel):
-    rating: int = Field(description="Impact score from -1 (extreme negative impact) to 10 (extreme positive impact), or Nan if not applicable")
+    rating: int = Field(
+        ge=-10,
+        le=10,
+        description="Signed impact on the stock price: -10 = extreme negative, 0 = neutral / no impact, +10 = extreme positive",
+    )
