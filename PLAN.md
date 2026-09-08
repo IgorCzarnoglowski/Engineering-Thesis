@@ -18,10 +18,10 @@ Ocena długości przydatności wiadomości dotyczącej spółek z indeksu WIG20 
 
 ## 3. Plan działania
 - [ ] Pobranie danych
-- [ ] EDA
 - [ ] Analiza danych
 - [ ] Przygotowanie danych
 - [ ] Sklasyfikowanie wiadomości przez LLM
+- [ ] EDA
 - [ ] Feature Engineering (potencjalnie)
 - [ ] Modelowanie
 - [ ] Ewaulacja modeli

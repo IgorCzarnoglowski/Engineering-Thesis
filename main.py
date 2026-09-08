@@ -3,8 +3,8 @@ from src import pipeline
 import pandas as pd
 import os
 
-RAW_CSV = 'data/raw/news_output_v2.csv'
-ENRICHED_CSV = 'data/enriched/news_enriched.csv'
+RAW_CSV = 'data/news_output.csv'
+ENRICHED_CSV = 'data/news_enriched.csv'
 
 
 def scrape():

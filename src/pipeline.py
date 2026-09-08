@@ -1,30 +1,28 @@
 import pandas as pd
 from src.llm.company_matcher import get_company_name_from_content, map_company_to_ticker
-from src.llm.impact_rater import get_rate
+from src.llm.impact_rater import get_rate, is_blank
 from src.market.stock_data import get_stock_data
 
 
 def enrich_dataframe(df):
     for idx, row in df.iterrows():
-        ticker_val = row.get("ticker") if "ticker" in df.columns else None
-        if pd.notna(ticker_val) and str(ticker_val).strip().lower() not in ("", "nan"):
-            continue
+        if is_blank(row.get("ticker")):
+            company_name = get_company_name_from_content(row.get("content"))
+            df.at[idx, "company_name"] = company_name
+            df.at[idx, "ticker"] = map_company_to_ticker(company_name)
+        else:
+            company_name = row.get("company_name")
 
-        company_name = get_company_name_from_content(row["content"])
-        ticker = map_company_to_ticker(company_name)
-        rate = get_rate(row["title"], row["content"], company_name)
-
-        df.at[idx, "company_name"] = company_name
-        df.at[idx, "ticker"] = ticker
-        df.at[idx, "rate"] = rate
+        if pd.isna(row.get("rate")):
+            df.at[idx, "rate"] = get_rate(row.get("title"), row.get("content"), company_name)
 
     return _get_stock_price_for_companies(df)
 
 
 def _get_stock_price_for_companies(df):
     for idx, row in df.iterrows():
-        tck = row.ticker if "ticker" in df.columns else None
-        if not tck or tck.lower() == "nan":
+        tck = row.get("ticker")
+        if is_blank(tck):
             continue
         prices = get_stock_data(tck, row.date)
         for label, value in prices.items():

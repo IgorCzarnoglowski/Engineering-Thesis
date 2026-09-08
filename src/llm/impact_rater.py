@@ -1,3 +1,5 @@
+import pandas as pd
+
 from src.llm.client import chat
 from src.llm.schemas import ImpactRatingResult
 
@@ -8,8 +10,12 @@ Consider sentiment, relevance, financial/operational implications, and investor 
 """
 
 
+def is_blank(value) -> bool:
+    return pd.isna(value) or str(value).strip().lower() in ("", "nan")
+
+
 def get_rate(title: str, news: str, company: str):
-    if not company or company.strip().lower() == "nan":
+    if is_blank(company) or is_blank(news):
         return "Nan"
 
     user_prompt = f"""Title: {title}

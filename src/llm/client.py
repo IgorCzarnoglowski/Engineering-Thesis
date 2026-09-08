@@ -1,9 +1,10 @@
-import lmstudio as lms
 from config.settings import LMS_MODEL
 from src.llm.web_search import search_web
 
 
 def chat(system_prompt: str, user_prompt: str, response_schema=None, use_web_search=False):
+    import lmstudio as lms
+
     model = lms.llm(LMS_MODEL)
     conversation = lms.Chat(system_prompt)
     conversation.add_user_message(user_prompt)
