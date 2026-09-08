@@ -29,7 +29,7 @@ Ocena długości przydatności wiadomości dotyczącej spółek z indeksu WIG20 
 
 ## 4. Przewidywane technologie
 - [ ] Python 3.12
-- [ ] Ollama
+- [ ] Lm Studio
 - [ ] Streamlit (do budowy aplikacji)
 
 ## 5. Przewidywane LLM
