@@ -3,7 +3,7 @@ from src import pipeline
 import pandas as pd
 import os
 
-RAW_CSV = 'data/news_output.csv'
+RAW_CSV = 'data/test.csv'
 ENRICHED_CSV = 'data/news_enriched.csv'
 
 
