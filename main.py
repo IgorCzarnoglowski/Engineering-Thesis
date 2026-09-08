@@ -33,10 +33,15 @@ def scrape():
     print(f"Saved {len(df_combined)} rows to {RAW_CSV}")
 
 
-def enrich():
+def enrich(match=True, rate=True, prices=True):
     source = ENRICHED_CSV if os.path.exists(ENRICHED_CSV) else RAW_CSV
     df = pd.read_csv(source)
-    df = pipeline.enrich_dataframe(df)
+    if match:
+        df = pipeline.match_companies(df)
+    if rate:
+        df = pipeline.rate_news(df)
+    if prices:
+        df = pipeline.add_stock_prices(df)
     for col in df.select_dtypes(include='object').columns:
         df[col] = df[col].str.replace(r'[\r\n]+', ' ', regex=True)
     df.to_csv(ENRICHED_CSV, index=False, encoding='utf-8-sig')
@@ -45,4 +50,7 @@ def enrich():
 
 if __name__ == "__main__":
     scrape()
-    #enrich()
+    #enrich()                                  # wszystko na raz
+    #enrich(rate=False, prices=False)          # tylko dopasowanie firm
+    #enrich(match=False, prices=False)         # tylko ocena wpływu
+    #enrich(match=False, rate=False)           # tylko cen akcji

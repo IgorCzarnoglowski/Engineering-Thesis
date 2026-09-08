@@ -1,4 +1,4 @@
-"""Self-check for enrich_dataframe branching. Run: python test_pipeline.py"""
+"""Self-check for the pipeline steps. Run: python test_pipeline.py"""
 import numpy as np
 import pandas as pd
 
@@ -17,31 +17,53 @@ def fake_rate(title, content, company):
     return "7"
 
 
-def test_enrich():
-    pipeline.get_company_name_from_content = fake_match
-    pipeline.get_rate = fake_rate
-    pipeline._get_stock_price_for_companies = lambda df: df
+pipeline.get_company_name_from_content = fake_match
+pipeline.get_rate = fake_rate
 
-    df = pd.DataFrame([
+
+def sample():
+    return pd.DataFrame([
         {"title": "a", "content": "x", "company_name": "pepco", "ticker": "PCO.WA"},
         {"title": "b", "content": "y", "company_name": "Nan", "ticker": "Nan"},
         {"title": "c", "content": "z", "company_name": np.nan, "ticker": np.nan},
     ])
-    out = pipeline.enrich_dataframe(df)
 
-    assert calls["match"] == 2, calls                      # only the Nan/NaN tickers
+
+def test_match_only():
+    calls.update(match=0, rate=0)
+    out = pipeline.match_companies(sample())
+
+    assert calls == {"match": 2, "rate": 0}, calls          # only the blank tickers
     assert out.loc[0, "ticker"] == "PCO.WA"                 # existing ticker untouched
     assert out.loc[1, "ticker"] == out.loc[2, "ticker"] == "KGH.WA"
-    assert calls["rate"] == 3, calls                        # every row rated
-    assert list(out["rate"]) == ["7", "7", "7"]
+    assert "rate" not in out.columns                        # rating step not run
 
-    # rows with an existing rate are not re-rated
-    calls["rate"] = 0
-    out2 = pipeline.enrich_dataframe(out)
+
+def test_rate_only():
+    calls.update(match=0, rate=0)
+    out = pipeline.rate_news(sample())
+
+    assert calls == {"match": 0, "rate": 3}, calls          # every row rated, no matching
+    assert list(out["rate"]) == ["7", "7", "7"]
+    assert out.loc[1, "ticker"] == "Nan"                    # tickers left alone
+
+    calls["rate"] = 0                                       # existing rates not redone
+    assert list(pipeline.rate_news(out)["rate"]) == ["7", "7", "7"]
     assert calls["rate"] == 0, calls
-    assert list(out2["rate"]) == ["7", "7", "7"]
+
+
+def test_both():
+    calls.update(match=0, rate=0)
+    pipeline.add_stock_prices = lambda df: df
+    out = pipeline.enrich_dataframe(sample())
+
+    assert calls == {"match": 2, "rate": 3}, calls
+    assert list(out["ticker"]) == ["PCO.WA", "KGH.WA", "KGH.WA"]
+    assert list(out["rate"]) == ["7", "7", "7"]
 
 
 if __name__ == "__main__":
-    test_enrich()
+    test_match_only()
+    test_rate_only()
+    test_both()
     print("ok")
