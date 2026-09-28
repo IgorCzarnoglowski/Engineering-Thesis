@@ -6,7 +6,7 @@ from src.llm.schemas import CompanyMatchResult
 SYSTEM_PROMPT = """You are a company identification assistant. Given a list of WIG20 companies and a news article, identify which company the article is about.
 
 Rules:
-- Pick the single most central company
+- Pick the single most relevant to the news company
 - If none match, return "Nan"
 - Return only the company name from the provided list"""
 
