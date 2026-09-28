@@ -14,7 +14,7 @@ The sign is the direction of the price move, the magnitude is how strong the mov
              or news that is not really about this company
 
 Most corporate filings are 0. Do not inflate the score to look decisive, and do not lean positive by default.
-Judge the price reaction, not whether the news sounds good.
+You are supposed to provide score not based on how the price actually moved, but how in the moment of posting this news the market could react.
 
 Consider sentiment, relevance, financial/operational implications, and investor behavior.
 """
