@@ -1,8 +1,8 @@
 companies = {
     "mbank": ("109", "MBK.WA"),
     "budimex": ("112", "BDX.WA"),
-    "sanpl": ("117", "SPL.WA"),
-    "ccc": ("456", "CCC.WA"),
+    "erste": ("117", "EBP.WA"),
+    "modivo": ("456", "MDV.WA"),
     "kety": ("274", "KTY.WA"),
     "kghm": ("350", "KGH.WA"),
     "lpp": ("380", "LPP.WA"),
