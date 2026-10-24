@@ -1,4 +1,4 @@
-from config.companies import companies
+from config.settings import companies
 from src.llm.client import chat
 from src.llm.schemas import CompanyMatchResult
 
