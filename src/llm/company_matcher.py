@@ -23,9 +23,15 @@ Text:
 {news}"""
 
     result = chat(SYSTEM_PROMPT, user_prompt, response_schema=CompanyMatchResult)
-    parsed = CompanyMatchResult.model_validate_json(result)
-    return parsed.company_name
 
+    if not result:
+        return "Nan"
+    try:
+        parsed = CompanyMatchResult.model_validate_json(result)
+        return parsed.company_name
+    except ValueError:
+        print(f"Badly parsed reponse for company match, result: {result}")
+        return "Nan"
 
 def map_company_to_ticker(name: str) -> str:
     if not name:

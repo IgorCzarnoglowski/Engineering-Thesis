@@ -19,11 +19,14 @@ def get_stock_data(ticker: str, newsTime: str):
 
     base_time = pd.to_datetime(newsTime).tz_localize("Europe/Warsaw")
 
-    print(ticker)
     ticker_obj = yf.Ticker(ticker)
     data = ticker_obj.history(period="5d", interval="1m", auto_adjust=True)
-    data.index = data.index.tz_convert("Europe/Warsaw")
 
+    try:
+        data.index = data.index.tz_convert("Europe/Warsaw")
+        print(f"time zone conversation, since we have valid {ticker}")
+    except AttributeError:
+        print(f"Skipping time zone conversation, since no valid datime index found for {ticker}")
     close_prices = {}
 
     if base_time.day_name() == "Saturday":

@@ -3,8 +3,9 @@ from src import pipeline
 import pandas as pd
 import os
 
-RAW_CSV = 'data/testv2.csv'
-ENRICHED_CSV = 'data/news_enriched.csv'
+RAW_CSV = '###'
+ENRICHED_CSV = '###'
+selected_columns = ['title', 'content']
 
 
 def scrape():
@@ -27,8 +28,10 @@ def scrape():
     else:
         df_combined = df_new
 
-    for col in df_combined.select_dtypes(include='object').columns:
-        df_combined[col] = df_combined[col].str.replace(r'[\r\n]+', ' ', regex=True)
+    df_combined['date'] = pd.to_datetime(df_combined['date'])
+
+    for col in selected_columns:
+        df_combined[col] = df_combined[col].astype(str).str.replace(r'[\r\n]+', ' ', regex=True)
     df_combined.to_csv(RAW_CSV, index=False, encoding='utf-8-sig')
     print(f"Saved {len(df_combined)} rows to {RAW_CSV}")
 
@@ -42,7 +45,9 @@ def enrich(match=True, rate=True, prices=True):
         df = pipeline.rate_news(df)
     if prices:
         df = pipeline.add_stock_prices(df)
-    for col in df.select_dtypes(include='object').columns:
+
+
+    for col in selected_columns:
         df[col] = df[col].str.replace(r'[\r\n]+', ' ', regex=True)
     df.to_csv(ENRICHED_CSV, index=False, encoding='utf-8-sig')
     print(f"Saved {len(df)} rows to {ENRICHED_CSV}")
@@ -51,7 +56,7 @@ def enrich(match=True, rate=True, prices=True):
 if __name__ == "__main__":
     #scrape()
     #enrich()                                  # wszystko na raz
-    enrich(rate=False, prices=False)          # tylko dopasowanie firm
-    #enrich(match=False, prices=False)         # tylko ocena wpływu
-    #nrich(match=False, rate=False)           # tylko cen akcji
+    #enrich(rate=False, prices=False)          # tylko dopasowanie firm
+    enrich(match=False, prices=False)         # tylko ocena wpływu
+    #enrich(match=False, rate=False)           # tylko cen akcji
     print("gotowe")
