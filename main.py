@@ -39,12 +39,16 @@ def scrape():
 def enrich(match=True, rate=True, prices=True):
     source = ENRICHED_CSV if os.path.exists(ENRICHED_CSV) else RAW_CSV
     df = pd.read_csv(source)
+    df.drop_duplicates(inplace=True, subset=['link'])
+    df.drop_duplicates(inplace=True, subset=['content'])
+    df.drop_duplicates(inplace=True, subset=['title'])
     if match:
         df = pipeline.match_companies(df)
-    if rate:
-        df = pipeline.rate_news(df)
     if prices:
         df = pipeline.add_stock_prices(df)
+    if rate:
+        df = pipeline.rate_news(df)
+
 
 
     for col in selected_columns:
@@ -57,6 +61,6 @@ if __name__ == "__main__":
     #scrape()
     #enrich()                                  # wszystko na raz
     #enrich(rate=False, prices=False)          # tylko dopasowanie firm
-    enrich(match=False, prices=False)         # tylko ocena wpływu
+    #enrich(match=False, prices=False)         # tylko ocena wpływu
     #enrich(match=False, rate=False)           # tylko cen akcji
     print("gotowe")
