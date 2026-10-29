@@ -38,7 +38,11 @@ def scrape():
 
 def enrich(match=True, rate=True, prices=True):
     source = ENRICHED_CSV if os.path.exists(ENRICHED_CSV) else RAW_CSV
-    df = pd.read_csv(source)
+    df = pd.read_csv(source, dtype={
+        'link': 'string',
+        'title': 'string',
+        'date': 'string',
+        'content': 'string'})
     df.drop_duplicates(inplace=True, subset=['link'])
     df.drop_duplicates(inplace=True, subset=['content'])
     df.drop_duplicates(inplace=True, subset=['title'])
@@ -50,7 +54,12 @@ def enrich(match=True, rate=True, prices=True):
         df = pipeline.rate_news(df)
 
 
-
+    df = df.astype({
+        'company_name': 'string',
+        'ticker': 'string',
+        'category': 'string',
+        'source': 'string'
+    })
     for col in selected_columns:
         df[col] = df[col].str.replace(r'[\r\n]+', ' ', regex=True)
     df.to_csv(ENRICHED_CSV, index=False, encoding='utf-8-sig')
