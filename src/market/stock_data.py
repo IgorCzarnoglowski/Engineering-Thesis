@@ -24,7 +24,6 @@ def get_stock_data(ticker: str, newsTime: str):
 
     try:
         data.index = data.index.tz_convert("Europe/Warsaw")
-        print(f"time zone conversation, since we have valid {ticker}")
     except AttributeError:
         print(f"Skipping time zone conversation, since no valid datime index found for {ticker}")
     close_prices = {}
