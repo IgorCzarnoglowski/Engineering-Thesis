@@ -1,9 +1,10 @@
 import random
+
 from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime, timedelta
 import time
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 from config.settings import companies
 
@@ -21,20 +22,25 @@ def parse(url, browser, page_number=None):
     target_url = url if page_number is None else f'{url}{page_number}'
     context = browser.new_context(user_agent=random.choice(user_agents))
     page = context.new_page()
-    response = page.goto(target_url)
-    page.wait_for_load_state()
+    try:
+        response = page.goto(target_url)
+        page.wait_for_load_state()
+        if response.status in (403, 429):
+            print(f"Blocked (status {response.status}), backing off: {target_url}")
+            page.close()
+            context.close()
+            time.sleep(random.uniform(60, 120))
+            return parse(url, browser, page_number)
 
-    if response.status in (403, 429):
-        print(f"Blocked (status {response.status}), backing off: {target_url}")
+        soup = BeautifulSoup(page.content(), 'html.parser')
         page.close()
         context.close()
-        time.sleep(random.uniform(60, 120))
-        return parse(url, browser, page_number)
+        return soup
 
-    soup = BeautifulSoup(page.content(), 'html.parser')
-    page.close()
-    context.close()
-    return soup
+    except PlaywrightTimeoutError as error:
+        page.close()
+        context.close()
+        raise TimeoutError(f"Pap timeout for {target_url}") from error
 
 
 def gather_content(anchor, date, browser, ticker='Nan', name='Nan'):
@@ -48,8 +54,7 @@ def gather_content(anchor, date, browser, ticker='Nan', name='Nan'):
         page_content = parse(url, browser)
         main_content_tag = page_content.find('article', id='article')
         if main_content_tag is None:
-            raise RuntimeError(f"Still blocked or page structure changed: {url}")
-
+            raise RuntimeError(f"Retry failed {url}")
     title = main_content_tag.find('span', class_='field--name-title').text
 
     text_paragraphs = main_content_tag.find_all('p', class_='selectionShareable')
@@ -70,7 +75,12 @@ def company_profiles_scraping(cutoff, browser):
         break_flag = False
 
         for page_number in range(99):
-            page_content = parse(baseurl,browser, page_number)
+            try:
+                page_content = parse(baseurl,browser, page_number)
+            except TimeoutError as error:
+                print(f"Skipping on main list {error}")
+                break_flag = True
+                break
             articles_list_tag = page_content.find('ul', class_='newsList')
             if articles_list_tag is None:
                 print(f"Possible block (200 but no newsList) at {baseurl}{page_number}, backing off")
@@ -89,7 +99,11 @@ def company_profiles_scraping(cutoff, browser):
                         break_flag = True
                         break
                     else:
-                        all_data.append(gather_content(anchor, post_date_formatted, browser, ticker, company))
+                        try:
+                            all_data.append(gather_content(anchor, post_date_formatted, browser, ticker, company))
+                        except (TimeoutError, RuntimeError) as error:
+                            print(f"Skipping article: {error}")
+                            continue
                 else:
                     print(article)
                     print('No anchor for this news (Pap)')
@@ -113,7 +127,7 @@ def category_scraping(cutoff, browser):
         all_data = []
         for page_number in range(99):
             page_content = parse(url, browser, page_number)
-            articles_list_tag = page_content.find('ul', class_='newsList')
+            articles_list_tag = page_content.find('ul', class_='newsList') if page_content else None
             if articles_list_tag is None:
                 print(f"Possible block (200 but no newsList) at {url}{page_number}, backing off")
                 time.sleep(random.uniform(60, 120))
@@ -131,7 +145,11 @@ def category_scraping(cutoff, browser):
                         break_flag = True
                         break
                     else:
-                        all_data.append(gather_content(anchor, post_date_formatted, browser))
+                        try:
+                            all_data.append(gather_content(anchor, post_date_formatted, browser))
+                        except (TimeoutError, RuntimeError) as error:
+                            print(f"Skipping article: {error}")
+                            continue
                 else:
                     print(article)
                     print('No anchor for this news (Pap)')
