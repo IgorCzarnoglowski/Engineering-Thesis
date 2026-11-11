@@ -37,6 +37,13 @@ Content: {news}
 Company: {company}"""
 
     result = chat(SYSTEM_PROMPT, user_prompt, response_schema=ImpactRatingResult)
-    parsed = ImpactRatingResult.model_validate_json(result)
+    if not result:
+        return None
+    try:
+        parsed = ImpactRatingResult.model_validate_json(result)
+        return max(-10, min(10, parsed.rating))
+    except ValueError:
+        print(f"Badly parsed reponse for impact rate, result: {result}")
+        return None
 
-    return max(-10, min(10, parsed.rating))
+

@@ -9,7 +9,12 @@ def match_companies(df):
     for idx, row in df.iterrows():
         if not is_blank(row.get("ticker")):
             continue
-        company_name = get_company_name_from_content(row.get("content"))
+        text = row.get("content")
+        if is_blank(text):
+            text = row.get("title")
+        if is_blank(text):
+            continue
+        company_name = get_company_name_from_content(text)
         df.at[idx, "company_name"] = company_name
         df.at[idx, "ticker"] = map_company_to_ticker(company_name)
     return df
