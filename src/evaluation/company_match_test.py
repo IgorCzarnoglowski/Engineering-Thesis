@@ -1,5 +1,6 @@
 import pandas as pd
 from evaluate import evaluate_f1_macro
+import time
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
@@ -8,7 +9,7 @@ import os
 
 DIRECTORY = '../../data/enriched'
 DATA_ARRAY = []
-OUTPUT_FILE = '../../data/models/SONNET.csv'
+OUTPUT_FILE = '../../data/models/QWEN_with_title.csv'
 
 for file in os.listdir(DIRECTORY):
     file_path = os.path.join(DIRECTORY, file)
@@ -20,7 +21,8 @@ profiles_only_df = compacted_data[compacted_data["category"] == "profiles"].copy
 def populate_dataset():
     for idx, row in profiles_only_df.iterrows():
         text = row.get("content")
-        company_name_predicted = get_company_name_from_content(text)
+        title = row.get("title")
+        company_name_predicted = get_company_name_from_content(title, text)
         profiles_only_df.at[idx, "company_name_predicted"] = company_name_predicted
     profiles_only_df.to_csv(OUTPUT_FILE)
     return profiles_only_df
@@ -33,6 +35,7 @@ def check_data():
             counter += 1
     print(counter)
 
-
-evaluate_f1_macro(populate_dataset())
+populate_dataset()
+time.sleep(2)
+evaluate_f1_macro(pd.read_csv(OUTPUT_FILE))
 
