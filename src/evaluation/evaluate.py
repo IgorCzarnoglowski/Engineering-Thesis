@@ -1,6 +1,7 @@
 from scipy.stats import spearmanr
 import pandas as pd
 import os
+from sklearn.metrics import classification_report, f1_score
 
 
 DIRECTORY = '../../data/enriched'
@@ -47,8 +48,15 @@ def evaluate_directional_accuracy(df: pd.DataFrame):
         print(f"ret_{m}m: {round(acc * 100, 1)}%  (n={n})")
 
 
-evaluate_spearman(compacted_data)
-evaluate_directional_accuracy(compacted_data)
+if __name__ == "__main__":
+    evaluate_spearman(compacted_data)
+    evaluate_directional_accuracy(compacted_data)
 
 
-#def evaluate_f1_accuracy(df: pd.DataFrame):
+def evaluate_f1_macro(df: pd.DataFrame):
+    true = df["company_name"]
+    predicted = df["company_name_predicted"]
+
+    print("Company breakdown:\n",classification_report(true, predicted))
+    print("Macro F1:", f1_score(true, predicted, average='macro'))
+
