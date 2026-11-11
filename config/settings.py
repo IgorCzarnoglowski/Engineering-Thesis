@@ -17,7 +17,7 @@ companies = {
     "orangepl": ("636", "OPL.WA"),
     "pge": ("503", "PGE.WA"),
     "pzu": ("558", "PZU.WA"),
-    "kruk": ("558", "KRU.WA"),
+    "kruk": ("367", "KRU.WA"),
     "alior": ("1180", "ALR.WA"),
     "dinopl": ("1431", "DNP.WA"),
     "pepco": ("1593", "PCO.WA"),
