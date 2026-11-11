@@ -11,14 +11,15 @@ Rules:
 - Return only the company name from the provided list"""
 
 
-def get_company_name_from_content(news: str) -> str:
+def get_company_name_from_content(title: str, news: str) -> str:
     company_list = "\n".join(
         f"{i}. {name}" for i, name in enumerate(companies.keys(), 1)
     )
 
     user_prompt = f"""Companies:
 {company_list}
-
+Title:
+{title}
 Text:
 {news}"""
 
