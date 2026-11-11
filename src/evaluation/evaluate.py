@@ -51,4 +51,4 @@ evaluate_spearman(compacted_data)
 evaluate_directional_accuracy(compacted_data)
 
 
-def evaluate_f1_accuracy(df: pd.DataFrame):
+#def evaluate_f1_accuracy(df: pd.DataFrame):
