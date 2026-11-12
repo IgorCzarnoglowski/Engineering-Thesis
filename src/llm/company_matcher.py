@@ -10,10 +10,10 @@ Rules:
 - If none match, return "Nan"
 - Return only the company name from the provided list"""
 
-
 def get_company_name_from_content(title: str, news: str) -> str:
     company_list = "\n".join(
-        f"{i}. {name}" for i, name in enumerate(companies.keys(), 1)
+        f"{i}. {name} — {data[2]}"
+        for i, (name, data) in enumerate(companies.items(), 1)
     )
 
     user_prompt = f"""Companies:
