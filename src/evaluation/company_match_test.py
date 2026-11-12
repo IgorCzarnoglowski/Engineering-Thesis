@@ -9,7 +9,7 @@ import os
 
 DIRECTORY = '../../data/enriched'
 DATA_ARRAY = []
-OUTPUT_FILE = '../../data/models/QWEN_with_title.csv'
+OUTPUT_FILE = '../../data/models/gemini_with_title.csv'
 
 for file in os.listdir(DIRECTORY):
     file_path = os.path.join(DIRECTORY, file)
@@ -24,7 +24,7 @@ def populate_dataset():
         title = row.get("title")
         company_name_predicted = get_company_name_from_content(title, text)
         profiles_only_df.at[idx, "company_name_predicted"] = company_name_predicted
-    profiles_only_df.to_csv(OUTPUT_FILE)
+    profiles_only_df.to_csv(OUTPUT_FILE, index=False)
     return profiles_only_df
 
 def check_data():
