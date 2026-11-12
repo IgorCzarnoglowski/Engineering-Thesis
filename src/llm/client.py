@@ -56,3 +56,5 @@ def chat(system_prompt: str, user_prompt: str, response_schema=None, use_web_sea
             if attempt == 5:
                 raise
             time.sleep(2 ** attempt)  # 1,2,4,8,16s
+            return None
+    return None
