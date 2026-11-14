@@ -1,4 +1,4 @@
-OPENROUTER_MODEL = "google/gemini-3.8-flash"  # any OpenRouter model slug
+OPENROUTER_MODEL = "qwen/qwen3.6-35b-a3b"  # any OpenRouter model slug
 
 SCRAPING_LOOKBACK_DAYS = 5
 
