@@ -3,8 +3,8 @@ from src import pipeline
 import pandas as pd
 import os
 
-RAW_CSV = 'data/raw/test.csv'
-ENRICHED_CSV = 'data/enriched/enriched-06-11-2026.csv'
+RAW_CSV = 'data/raw/13-11-2026.csv'
+ENRICHED_CSV = 'data/enriched/enriched-13-11-2026.csv'
 selected_columns = ['title', 'content']
 
 
