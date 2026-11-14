@@ -55,8 +55,9 @@ if __name__ == "__main__":
 
 def evaluate_f1_macro(df: pd.DataFrame):
     true = df["company_name"]
-    predicted = df["company_name_predicted"]
+    predicted = df["company_name_predicted"].fillna("Nan")
+    labels = sorted(true.dropna().unique())
 
-    print("Company breakdown:\n",classification_report(true, predicted))
-    print("Macro F1:", f1_score(true, predicted, average='macro'))
+    print("Company breakdown:\n", classification_report(true, predicted, labels=labels, zero_division=0))
+    print("Macro F1:", f1_score(true, predicted, labels=labels, average='macro', zero_division=0))
 
