@@ -74,8 +74,17 @@ def evaluate_transfer_entropy(df: pd.DataFrame):
     price_bins = [-np.inf, -0.005, 0.005,np.inf]
     df[price_cols[1:]] = df[price_cols[1:]].apply(lambda col: pd.cut(col, bins=price_bins, labels=labels, include_lowest=True)).copy()
     # Modelling the logaritmic function for transfer entropy
-    for i in range(1, len(price_cols[1:])):
-        print(calculate_te(df, price_cols[i], price_cols[i+1]))
+    #for i in range(1, len(price_cols[1:])):
+        #print(calculate_te(df, price_cols[i], price_cols[i+1]))
+
+    # Shuffle data to check results
+    df_shuffled = df.copy()
+
+    for x in range(100):
+        df_shuffled['rate'] = df_shuffled['rate'].sample(frac=1).to_numpy()
+        print('-----------------------')
+        for i in range(1, len(price_cols[1:])):
+            print(calculate_te(df_shuffled, price_cols[i], price_cols[i+1]))
 
 
 def calculate_te(df, y_past_col, y_future_col):
