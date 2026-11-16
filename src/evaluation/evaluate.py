@@ -61,18 +61,18 @@ def evaluate_f1_macro(df: pd.DataFrame):
 
 def evaluate_transfer_entropy(df: pd.DataFrame):
     price_cols = ['initial price', '+5 min', '+10 min', '+15 min', '+30 min', '+60 min']
-    df = df.dropna(subset=['rate', '+60 min']) # remove empty rate which means no company classification and empty +60 min which means end of sesion
+    df = df.dropna(subset=['rate', '+60 min']).copy()# remove empty rate which means no company classification and empty +60 min which means end of sesion
     df[price_cols] = df[price_cols].ffill(axis=1)
 
     #Dividing rate values into discrete values
     rate_bins = [-10,-4,3,10]
     labels = [-1,0,1]
-    df['rate'] = pd.cut(df['rate'], bins=rate_bins, labels=labels, include_lowest=True)
+    df['rate'] = pd.cut(df['rate'], bins=rate_bins, labels=labels, include_lowest=True).copy()
 
     #Making price states
-    df[price_cols[1:]] = df[price_cols].pct_change(axis=1)[price_cols[1:]]
+    df[price_cols[1:]] = df[price_cols].pct_change(axis=1)[price_cols[1:]].copy()
     price_bins = [-np.inf, -0.005, 0.005,np.inf]
-    df[price_cols[1:]] = df[price_cols[1:]].apply(lambda col: pd.cut(col, bins=price_bins, labels=labels, include_lowest=True))
+    df[price_cols[1:]] = df[price_cols[1:]].apply(lambda col: pd.cut(col, bins=price_bins, labels=labels, include_lowest=True)).copy()
     # Modelling the logaritmic function for transfer entropy
     for i in range(1, len(price_cols[1:])):
         print(calculate_te(df, price_cols[i], price_cols[i+1]))
@@ -83,7 +83,7 @@ def calculate_te(df, y_past_col, y_future_col):
     p_cond_without_r = pd.crosstab(df[y_past_col], df[y_future_col], normalize='index')
     p_linked =  pd.crosstab([df[y_past_col], df['rate']], df[y_future_col], normalize=True)
 
-    te = p_linked * np.log2(p_cond_with_r.div(p_cond_without_r, level=0))
+    te = p_linked * np.log2(p_cond_with_r.div(p_cond_without_r, level=0).replace(0,1))
     return te.sum().sum()
 
 
