@@ -3,6 +3,7 @@ import pandas as pd
 import os
 from sklearn.metrics import classification_report, f1_score
 import numpy as np
+from lifelines import CoxPHFitter
 
 
 DIRECTORY = '../../data/enriched'
@@ -55,8 +56,10 @@ def evaluate_f1_macro(df: pd.DataFrame):
     predicted = df["company_name_predicted"].fillna("Nan")
     labels = sorted(true.dropna().unique())
 
+    f1_macro = f1_score(true, predicted, labels=labels, average='macro', zero_division=0)
     print("Company breakdown:\n", classification_report(true, predicted, labels=labels, zero_division=0))
-    print("Macro F1:", f1_score(true, predicted, labels=labels, average='macro', zero_division=0))
+    print("Macro F1:", f1_macro)
+    return f1_macro
 
 
 def evaluate_transfer_entropy(df: pd.DataFrame):
@@ -94,6 +97,7 @@ def evaluate_transfer_entropy(df: pd.DataFrame):
     for i in range(1, len(price_cols[1:])):
         p_val = counts[i-1]/n
         print(f"Okno {price_cols[i]} -> {price_cols[i+1]}:", p_val)
+    return te_dict
 
 def calculate_te(df, y_past_col, y_future_col):
     p_cond_with_r =  pd.crosstab([df[y_past_col], df['rate']], df[y_future_col], normalize='index')
@@ -103,7 +107,40 @@ def calculate_te(df, y_past_col, y_future_col):
     te = p_linked * np.log2(p_cond_with_r.div(p_cond_without_r, level=0).replace(0,1))
     return te.sum().sum()
 
+def evaluate_cox_hazard(df: pd.DataFrame):
+    coxph = CoxPHFitter(penalizer=0.1)
+    coxph2 = CoxPHFitter(penalizer=0.1)
+    price_cols = ['+5 min', '+10 min', '+15 min', '+30 min', '+60 min']
+    minutes = [5, 10, 15, 30, 60]
+    df = df.dropna(subset=['rate', '+60 min', 'company_name', 'initial price']).copy()
+    df[['initial price']+ price_cols] = df[['initial price'] + price_cols].ffill(axis=1)
+    THRESHOLD = 0.005
+
+    def get_survival_metrics(row):
+        initial_price = row['initial price']
+        for col, m in zip(price_cols, minutes):
+            if (row[col] - initial_price)/initial_price >= THRESHOLD:
+                return pd.Series([m,1]) #Zwracamy 1 co oznacza, że event zaszedł. m oznacza daną minutę od init price
+        return pd.Series([60,0]) # Zwracamy 0, gdy event nie zaszedł i ponieważ 60 minuta jest ostatnia to ją zwracamy
+
+    df[['duration', 'event']] = df.apply(get_survival_metrics, axis=1)
+
+    coxph.fit(df, duration_col='duration', event_col='event',formula='rate + source', strata='company_name')
+    print(coxph.summary)
+    print("C-index:", coxph.concordance_index_)
+    print('-----------------------------------------------\n')
+
+    coxph2.fit(df, duration_col='duration', event_col='event',formula='rate + source', strata='company_name')
+    print(coxph2.summary)
+    #df['predicted_hazard'] = coxph.predict_partial_hazard(df)
+    #print(df[['ticker', 'rate', 'duration', 'event', 'predicted_hazard']].head())
+
+    return coxph
+
+
+
 
 if __name__ == "__main__":
-    evaluate_transfer_entropy(compacted_data)
+    pd.set_option('display.max_columns', None)
+    evaluate_cox_hazard(compacted_data)
 
