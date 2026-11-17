@@ -61,7 +61,7 @@ def evaluate_f1_macro(df: pd.DataFrame):
 
 def evaluate_transfer_entropy(df: pd.DataFrame):
     price_cols = ['initial price', '+5 min', '+10 min', '+15 min', '+30 min', '+60 min']
-    df = df.dropna(subset=['rate', '+60 min']).copy()# remove empty rate which means no company classification and empty +60 min which means end of sesion
+    df = df.dropna(subset=['rate', '+60 min']).copy() # remove empty rate which means no company classification and empty +60 min which means end of sesion
     df[price_cols] = df[price_cols].ffill(axis=1)
 
     #Dividing rate values into discrete values
@@ -74,18 +74,26 @@ def evaluate_transfer_entropy(df: pd.DataFrame):
     price_bins = [-np.inf, -0.005, 0.005,np.inf]
     df[price_cols[1:]] = df[price_cols[1:]].apply(lambda col: pd.cut(col, bins=price_bins, labels=labels, include_lowest=True)).copy()
     # Modelling the logaritmic function for transfer entropy
-    #for i in range(1, len(price_cols[1:])):
-        #print(calculate_te(df, price_cols[i], price_cols[i+1]))
-
+    te_dict = {}
+    for i in range(1, len(price_cols[1:])):
+        te = calculate_te(df, price_cols[i], price_cols[i+1])
+        te_dict[price_cols[i]] = te
+    print("Wyniki dla transfer Entropy: ")
+    print(te_dict)
     # Shuffle data to check results
     df_shuffled = df.copy()
-
-    for x in range(100):
+    counts = [0,0,0,0]
+    n = 1000
+    for _ in range(n):
         df_shuffled['rate'] = df_shuffled['rate'].sample(frac=1).to_numpy()
-        print('-----------------------')
-        for i in range(1, len(price_cols[1:])):
-            print(calculate_te(df_shuffled, price_cols[i], price_cols[i+1]))
-
+        for j in range(1, len(price_cols[1:])):
+            te = calculate_te(df_shuffled, price_cols[j], price_cols[j+1])
+            if te >= te_dict[price_cols[j]]:
+                counts[j-1] += 1
+    print("\n p-value dla Transfer entropy poszczególnych okienek czasowych: ")
+    for i in range(1, len(price_cols[1:])):
+        p_val = counts[i-1]/n
+        print(f"Okno {price_cols[i]} -> {price_cols[i+1]}:", p_val)
 
 def calculate_te(df, y_past_col, y_future_col):
     p_cond_with_r =  pd.crosstab([df[y_past_col], df['rate']], df[y_future_col], normalize='index')
