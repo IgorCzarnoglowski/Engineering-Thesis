@@ -3,8 +3,8 @@ from src import pipeline
 import pandas as pd
 import os
 
-RAW_CSV = 'data/raw/13-11-2026.csv'
-ENRICHED_CSV = 'data/enriched/enriched-13-11-2026.csv'
+RAW_CSV = 'data/raw/22-11-2026.csv'
+ENRICHED_CSV = 'data/enriched/enriched-22-11-2026.csv'
 selected_columns = ['title', 'content']
 
 
@@ -69,7 +69,7 @@ def enrich(match=True, rate=True, prices=True):
 if __name__ == "__main__":
     #scrape()
     #enrich()                                  # wszystko na raz
-    #enrich(rate=False, prices=False)          # tylko dopasowanie firm
-    enrich(match=False, prices=False)         # tylko ocena wpływu
+    enrich(rate=False, prices=False)          # tylko dopasowanie firm
+    #enrich(match=False, prices=False)         # tylko ocena wpływu
     #enrich(match=False, rate=False)           # tylko cen akcji
     print("gotowe")
